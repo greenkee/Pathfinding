@@ -35,6 +35,7 @@ public class DStarLiteScope implements java.io.Serializable {
 	static int eY ;
 	static long begin;
 	static final long MAX_TIME = 5000;
+	State prevCur = new State();
 	
 	private List<State> path = new ArrayList<State>();
 	private double C1;
@@ -52,7 +53,7 @@ public class DStarLiteScope implements java.io.Serializable {
 	// Constants
 	private static double M_SQRT2 = Math.sqrt(2.0);
 
-	private static final double maxVisionRange = 100;// 1 * M_SQRT2;
+	private static final double maxVisionRange = 2;
 	private static final int MAXTIME = 5000;
 
 	// Default constructor
@@ -95,6 +96,9 @@ public class DStarLiteScope implements java.io.Serializable {
 		s_start = calculateKey(s_start);
 
 		s_last = s_start;
+		
+		s_current.x = s_start.x;
+		s_current.y = s_start.y;
 
 	}
 
@@ -114,12 +118,17 @@ public class DStarLiteScope implements java.io.Serializable {
 	 * Returns the rhs value for state u.
 	 */
 	private double getRHS(State u) {
+
 		if (u == s_goal)
 			return 0;
 
 		// if the cellHash doesn't contain the State u
 		if (cellHash.get(u) == null)
 			return heuristic(u, s_goal);
+		
+		if (cellHash.get(u).cost < 0 ) {
+			return Double.POSITIVE_INFINITY;
+		}
 		return cellHash.get(u).rhs;
 	}
 
@@ -158,7 +167,7 @@ public class DStarLiteScope implements java.io.Serializable {
 	}
 
 	public boolean calculatePath() {
-		//System.out.println("START PATH CALC");
+		System.out.println("START PATH CALC");
 		path.clear();
 
 		int res = computeShortestPath();
@@ -170,6 +179,7 @@ public class DStarLiteScope implements java.io.Serializable {
 		LinkedList<State> n = new LinkedList<State>();
 		State cur = s_start;
 
+
 		if (getG(s_start) == Double.POSITIVE_INFINITY) {
 			System.out.println("No Path to Goal");
 			return false;
@@ -177,9 +187,13 @@ public class DStarLiteScope implements java.io.Serializable {
 		boolean running = true;
 		// while (s_current.neq(s_goal) && (running)) {
 		//(System.currentTimeMillis() - begin < MAXTIME)&& 
-		while (cur.neq(s_goal) && trueDist(s_start, cur) < maxVisionRange) {
-			//System.out.println("ITERATE ONCE");
+		while (cur.neq(s_goal) && trueDist(s_start, cur) < maxVisionRange-.0001) {
+			System.out.println("s_start: "+s_start.x+","+ s_start.y+ " cur:"+cur.x+","+cur.y+ " dist:"+trueDist(s_start, cur));
 			path.add(cur);
+			
+			prevCur.x = cur.x;
+			prevCur.y = cur.y;
+			System.out.println("PREV CUR START:" + prevCur.x+","+prevCur.y);
 
 			traveledPath.add(new State(cur));
 			// System.out.println(traveledPath.toString());
@@ -215,18 +229,24 @@ public class DStarLiteScope implements java.io.Serializable {
 			}
 			n.clear();
 			cur = new State(smin);
+
 			// cur = smin;
 		}
 
 		if (cur.eq(s_goal)) {
 			s_current = cur;
 			traveledPath.add(new State(s_goal));
-		} else {
-			s_current = cur;
+		} else if(trueDist(s_start,cur) < maxVisionRange){
+			s_current.x = cur.x;
+			s_current.y = cur.y;
+			System.out.println("UPDATE START" + cur.x+","+cur.y);
 			updateStart(cur.x, cur.y);
+		}else {
+			System.out.println("UPDATE START PREV" + prevCur.x+","+prevCur.y);
+			updateStart(prevCur.x, prevCur.y);
 		}
 
-		 //updateObstacles(obstaclesList); MAYBE REENABLE?
+		 //updateObstacles(obstaclesList);
 
 		return true;
 	}
@@ -246,10 +266,6 @@ public class DStarLiteScope implements java.io.Serializable {
 			return 1;
 
 		int k = 0;
-		
-		
-		
-		
 		
 		while ( (!openList.isEmpty())&& (openList.peek().lt(s_start = calculateKey(s_start))|| (getRHS(s_start) != getG(s_start)))){
 
@@ -773,10 +789,11 @@ public class DStarLiteScope implements java.io.Serializable {
 
 	public void updateObstacles(ArrayList<Obstacles> obstaclesList) {
 		for (Obstacles o : obstaclesList) {
-			//System.out.println("SX:" + s_start.x+" SY:" + s_start.y);
+			System.out.println("DIST:"+(Math.sqrt(Math.pow(o.x - s_start.x, 2)
+					+ Math.pow(o.y - s_start.y, 2)) ));
 			if (Math.sqrt(Math.pow(o.x - s_start.x, 2)
 					+ Math.pow(o.y - s_start.y, 2)) <= maxVisionRange) {
-				//System.out.println("OBS: " + o.x+","+o.y);
+				System.out.println("OBS: " + o.x+","+o.y);
 				// setG(, Double.POSITIVE_INFINITY);
 				//markImpassable(o.x, o.y);
 				updateCell(o.x, o.y, -1);
