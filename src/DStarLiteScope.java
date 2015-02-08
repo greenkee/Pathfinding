@@ -33,6 +33,8 @@ public class DStarLiteScope implements java.io.Serializable {
 	static int sY ;
 	static int eX ;
 	static int eY ;
+	static int cX ;
+	static int cY ;
 	static long begin;
 	static final long MAX_TIME = 5000;
 	State prevCur = new State();
@@ -53,7 +55,7 @@ public class DStarLiteScope implements java.io.Serializable {
 	// Constants
 	private static double M_SQRT2 = Math.sqrt(2.0);
 
-	private static final double maxVisionRange = 2;
+	private static final double maxVisionRange = 30; //note: min slightly more than sqrt2
 	private static final int MAXTIME = 5000;
 
 	// Default constructor
@@ -68,7 +70,7 @@ public class DStarLiteScope implements java.io.Serializable {
 	 * 
 	 * @params start and goal coordinates
 	 */
-	public void init(int sX, int sY, int gX, int gY) {
+	public void init(int sX, int sY, int gX, int gY, int cX, int cY) {
 		cellHash.clear();
 		path.clear();
 		openHash.clear();
@@ -81,7 +83,6 @@ public class DStarLiteScope implements java.io.Serializable {
 		s_start.y = sY;
 		s_goal.x = gX;
 		s_goal.y = gY;
-
 		CellInfo tmp = new CellInfo();
 		tmp.g = 0;
 		tmp.rhs = 0;
@@ -712,7 +713,7 @@ public class DStarLiteScope implements java.io.Serializable {
 		// Adding obstacles an creating the maze
 		Scanner sc = null;
 		try {
-			sc = new Scanner(new File("obstacles.txt"));
+			sc = new Scanner(new File("largeMaze.txt"));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -721,8 +722,10 @@ public class DStarLiteScope implements java.io.Serializable {
 		sY = sc.nextInt();
 		eX = sc.nextInt();
 		eY = sc.nextInt();
-		pf.init(sX, sY, eX, eY);
-		pf.createWalls(eX, eY);
+		cX = sc.nextInt();
+		cY = sc.nextInt();
+		pf.init(sX, sY, eX, eY, cX, cY);
+		pf.createWalls(cX, cY);
 		// pf.createWalls(10, 10); // (xmax, //ymax)
 		int numOfObstacles = sc.nextInt();
 		for (int i = 0; i < numOfObstacles; i++) {
@@ -818,7 +821,7 @@ public class DStarLiteScope implements java.io.Serializable {
 			
 			add(new Surface(traveledPath, obstaclesList));
 			
-			setSize(Surface.width * (eX+1), Surface.height * (eY+1));
+			setSize((int)(Surface.width * (cX+2)), (int)(Surface.height * (cY+2.5)));
 			setLocationRelativeTo(null);
 		}
 		public void doDrawing(){
@@ -840,7 +843,7 @@ public class DStarLiteScope implements java.io.Serializable {
 			super();
 			traveledList = l;
 			obstaclesList = o;
-			setSize(Surface.width * (eX+1), Surface.height * (eY+1));
+			setSize(Surface.width * (cX+1), Surface.height * (cY+1));
 			
 		}
 		
@@ -860,8 +863,8 @@ public class DStarLiteScope implements java.io.Serializable {
 		@Override
 		public void paintComponent(Graphics g){
 			super.paintComponent(g);
-			for(int i = 0; i < eX + 1; i++){
-				for(int j =0; j<eY + 1; j++){
+			for(int i = 0; i < cX + 1; i++){
+				for(int j =0; j<cY + 1; j++){
 					paintRect(g, i*width, j*height, width, height, Color.BLACK);
 				}
 			}
