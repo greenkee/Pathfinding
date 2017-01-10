@@ -5,6 +5,7 @@ Building on A\* and LPA\*, D\*Lite uses a dynamically enabled algorithm with heu
 
 #Sample Output
 Solved map with limited scope:
+
 ![alt tag](https://github.com/greenkee/Pathfinding/blob/master/media/example1.jpg)
 
 Computer Output:
