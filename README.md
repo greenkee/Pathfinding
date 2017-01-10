@@ -8,4 +8,5 @@ Solved map with limited scope:
 ![alt tag](https://github.com/greenkee/Pathfinding/blob/master/media/example1.jpg)
 
 Computer Output:
+
 ![alt tag](https://github.com/greenkee/Pathfinding/blob/master/media/example2.jpg)
